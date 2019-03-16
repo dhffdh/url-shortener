@@ -2,6 +2,10 @@ import React, { Component } from 'react';
 import axios from "axios";
 import { RenderErrors } from "./Utils"
 
+function getShortLinkExample(code){
+    return !!code && code.length ? window.location.protocol + "//" + window.location.host+"/i/"+code : "";
+}
+
 
 export default class Form extends Component {
 
@@ -14,26 +18,29 @@ export default class Form extends Component {
             isLoading: false,
             useCode: false,
         };
-        this.submitHandler = this.submitHandler.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
         this.validate = this.validate.bind(this);
     }
 
-    submitHandler(e){
+    handleSubmit(e){
         e.preventDefault();
 
-        //console.log('submitHandler', this.state );
         this.setState({
             errorList: [],
             isLoading: true
         });
 
+        let params = { href: this.state.href };
 
-        axios.post('/urls', { href: this.state.href })
+        if(this.state.useCode)
+            params = { ...params , code: this.state.code };
+
+        axios.post('/urls', params)
             .then(
                 res => {
-                    //console.log('submitHandler res:',res.data);
                     this.setState({
-                        href: ""
+                        href: "",
+                        code: ""
                     });
                     if(this.props.onSuccesAdd){
                         this.props.onSuccesAdd(res.data);
@@ -41,17 +48,16 @@ export default class Form extends Component {
                 }
             )
             .catch(error => {
-                //console.log('ERROR', errors );
-                if(!!error.response.data.errors && error.response.data.errors.length){
-                    this.setState({
-                        errorList: Object.values(error.response.data.errors)
-                    });
-                }
+                let errorsList = [];
                 if(!!error.response.data.message){
-                    this.setState({
-                        errorList: [error.response.data.message]
-                    });
+                    errorsList = [ ...errorsList, error.response.data.message ]
                 }
+                if(!!error.response.data.errors){
+                    errorsList = [ ...errorsList, ...Object.values(error.response.data.errors) ];
+                }
+                this.setState({
+                    errorList: errorsList
+                });
             })
             .finally(() => {
                 this.setState({
@@ -68,13 +74,11 @@ export default class Form extends Component {
 
     handleCodeInput(e) {
         this.setState({
-            code: e.target.value
+            code: e.target.value.replace(/[^\w]/g, "")
         });
     }
 
-
     handleCheckbox(e) {
-        //console.log('handleCheckbox', e.target.checked );
         this.setState({
             useCode: e.target.checked
         });
@@ -91,16 +95,10 @@ export default class Form extends Component {
 
     validate(){
         let isValid = this.validHref();
-
-        if(isValid && this.state.useCode){
-            isValid = this.validCode()
+        if(this.state.useCode){
+            isValid = isValid && this.validCode()
         }
-
         return isValid;
-    }
-
-    getShortLinkExample($code){
-        return !!$code && $code.length ? window.location.protocol + "//" + window.location.host+"/i/"+$code : "";
     }
 
     render() {
@@ -111,7 +109,7 @@ export default class Form extends Component {
                 <div className="card-header">URL Shortener</div>
                 <div className="card-body">
                     <p>This tool will help you turn a long and complicated link into a short one.</p>
-                    <form onSubmit={this.submitHandler}>
+                    <form onSubmit={this.handleSubmit}>
                         <div className="form-group">
                             <input type="text"
                                    className="form-control"
@@ -141,13 +139,13 @@ export default class Form extends Component {
                                            onChange={(e)=>this.handleCodeInput(e)}
                                            value={this.state.code}
                                     />
-                                    <small className="text-muted">{ this.getShortLinkExample(this.state.code) }</small>
+                                    <small className="text-muted">{ getShortLinkExample(this.state.code) }</small>
                                 </div>
                             ) : null
                         }
 
                         <div className="form-group">
-                            <button type="submit" className="btn btn-primary" disabled={!this.validate()}>{ !this.state.isLoading ? 'Shorten' : 'Loading...' } </button>
+                            <button type="submit" className="btn btn-primary" disabled={!this.validate()}>{ !this.state.isLoading ? 'Create' : 'Loading...' } </button>
                         </div>
 
                     </form>

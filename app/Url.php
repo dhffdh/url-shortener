@@ -11,7 +11,18 @@ use Exception;
 class Url extends Model
 {
 
+    /**
+     * allowed characters for short code
+     *
+     * @var string
+     */
+    protected static $chars = "abcdefghijklmnopqrstuvwxyz|ABCDEFGHIJKLMNOPQRSTUVWXYZ|0123456789";
+
+    protected static $lengthCode = 6;
+
+
     protected static $viewColumns = ['id','href', 'code', 'active', 'created_at'];
+
 
     protected $fillable = ['href', 'code', 'user_id', 'active', 'timeout'];
 
@@ -23,7 +34,7 @@ class Url extends Model
 
 
     /**
-     * computed attr: ShortHref
+     * new computed attr: short_href
      *
      * @return string
      */
@@ -33,11 +44,11 @@ class Url extends Model
     }
 
     /**
-     * Get list of links for user
+     * Get all links by current User
      *
      * @return mixed
      */
-    public static function getAll()
+    public static function getAllByUser()
     {
         $item = self::where('active', true)
             ->where('user_id', Auth::id())
@@ -46,10 +57,12 @@ class Url extends Model
     }
 
     /**
+     * Get one link by current User
+     *
      * @param $urlId
      * @return mixed
      */
-    public static function getOne($urlId){
+    public static function getOneByUser($urlId){
         return self::where('id', $urlId)
             ->where('active', true)
             ->where('user_id', Auth::id())
@@ -60,7 +73,7 @@ class Url extends Model
      * @param $shortCode
      * @return mixed
      */
-    public static function getOneByCode($shortCode){
+    public static function getByCode($shortCode){
         return self::where('code', $shortCode)
             ->where('active', true)
             ->first(self::$viewColumns);
@@ -68,10 +81,12 @@ class Url extends Model
 
 
     /**
+     * deleting by current User
+     *
      * @param $urlId
      * @return mixed
      */
-    public static function deleteOne($urlId){
+    public static function deleteOneByUser($urlId){
         $item = self::where('id', $urlId)
             ->where('active', true)
             ->where('user_id', Auth::id())
@@ -84,21 +99,60 @@ class Url extends Model
 
 
     /**
-     * Create item in DB
+     * Adding link by current User
      *
-     * @param $href
+     * @param $request
      * @throws Exception
      */
-    public static function createOne($href){
+    public static function createOneByUser(Request $request){
+
+        $href = $request['href'];
+        if(empty($href)){
+            throw new Exception("Href is required");
+        }
         if(!self::isUniqueHref($href)){
             throw new Exception("This link already exists");
         }
+
+        $code = self::createShortCode( self::$lengthCode );
+        if(!empty($request['code'])){
+            $code = self::validateCode($request['code']);
+            if(!self::isUniqueShortCode($code))
+                throw new Exception("The code already exists");
+        }
+
         $item = new Url;
         $item->href = $href;
-        $item->code = self::createShortCode();
+        $item->code = $code;
         $item->user_id = Auth::id();
         $item->active = true;
         $item->save();
+    }
+
+
+    /**
+     * Validate and clear request code from unavaleble chars
+     *
+     * @param $userCode
+     * @return string
+     * @throws Exception
+     */
+    protected static function validateCode($userCode){
+        $codeArray = str_split($userCode);
+        $avalebleChars = [];
+        foreach(explode('|', self::$chars) as $set){
+            $avalebleChars = array_merge($avalebleChars, str_split($set));
+        }
+        $resCode = "";
+        foreach ($codeArray as $char){
+            if(in_array($char,$avalebleChars))
+                $resCode .= $char;
+        }
+
+        if(strlen($resCode) < self::$lengthCode)
+            throw new Exception("The code must be at least 6 characters.");
+
+        return $resCode;
     }
 
     /**
@@ -113,12 +167,6 @@ class Url extends Model
             ->exists();
     }
 
-    /**
-     * avalible chars
-     *
-     * @var string
-     */
-    protected static $chars = "abcdfghjkmnpqrstvwxyz|ABCDFGHJKLMNPQRSTVWXYZ|0123456789|!*()";
 
     /*
      * Create random shortCode
@@ -129,7 +177,7 @@ class Url extends Model
      * if length = 7 exist 57^7 = 1.954.897.493.193 versions
      *
      */
-    protected static function generateShortCode($length = 6){
+    protected static function generateShortCode($length = 3){
         $sets = explode('|', self::$chars);
         $all = '';
         $randString = '';
@@ -152,7 +200,7 @@ class Url extends Model
      * @return string
      * @throws Exception
      */
-    protected static function createShortCode($length = 6){
+    protected static function createShortCode($length = 3){
         $count = 0;
         $time_start = microtime(true);
         do {

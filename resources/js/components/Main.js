@@ -56,7 +56,7 @@ export default class Main extends Component {
                     this.getUrls();
                 })
                 .catch(error => {
-                    console.log('delete error', error)
+                    console.log('onDeleteHandler error', error)
                 })
         }
     }

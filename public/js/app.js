@@ -61310,6 +61310,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Utils */ "./resources/js/components/Utils.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -61330,6 +61342,10 @@ function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || func
 
 
 
+function getShortLinkExample(code) {
+  return !!code && code.length ? window.location.protocol + "//" + window.location.host + "/i/" + code : "";
+}
+
 var Form =
 /*#__PURE__*/
 function (_Component) {
@@ -61348,46 +61364,50 @@ function (_Component) {
       isLoading: false,
       useCode: false
     };
-    _this.submitHandler = _this.submitHandler.bind(_assertThisInitialized(_this));
+    _this.handleSubmit = _this.handleSubmit.bind(_assertThisInitialized(_this));
     _this.validate = _this.validate.bind(_assertThisInitialized(_this));
     return _this;
   }
 
   _createClass(Form, [{
-    key: "submitHandler",
-    value: function submitHandler(e) {
+    key: "handleSubmit",
+    value: function handleSubmit(e) {
       var _this2 = this;
 
-      e.preventDefault(); //console.log('submitHandler', this.state );
-
+      e.preventDefault();
       this.setState({
         errorList: [],
         isLoading: true
       });
-      axios__WEBPACK_IMPORTED_MODULE_1___default.a.post('/urls', {
+      var params = {
         href: this.state.href
-      }).then(function (res) {
-        //console.log('submitHandler res:',res.data);
+      };
+      if (this.state.useCode) params = _objectSpread({}, params, {
+        code: this.state.code
+      });
+      axios__WEBPACK_IMPORTED_MODULE_1___default.a.post('/urls', params).then(function (res) {
         _this2.setState({
-          href: ""
+          href: "",
+          code: ""
         });
 
         if (_this2.props.onSuccesAdd) {
           _this2.props.onSuccesAdd(res.data);
         }
       }).catch(function (error) {
-        //console.log('ERROR', errors );
-        if (!!error.response.data.errors && error.response.data.errors.length) {
-          _this2.setState({
-            errorList: Object.values(error.response.data.errors)
-          });
-        }
+        var errorsList = [];
 
         if (!!error.response.data.message) {
-          _this2.setState({
-            errorList: [error.response.data.message]
-          });
+          errorsList = [].concat(_toConsumableArray(errorsList), [error.response.data.message]);
         }
+
+        if (!!error.response.data.errors) {
+          errorsList = [].concat(_toConsumableArray(errorsList), _toConsumableArray(Object.values(error.response.data.errors)));
+        }
+
+        _this2.setState({
+          errorList: errorsList
+        });
       }).finally(function () {
         _this2.setState({
           isLoading: false
@@ -61405,13 +61425,12 @@ function (_Component) {
     key: "handleCodeInput",
     value: function handleCodeInput(e) {
       this.setState({
-        code: e.target.value
+        code: e.target.value.replace(/[^\w]/g, "")
       });
     }
   }, {
     key: "handleCheckbox",
     value: function handleCheckbox(e) {
-      //console.log('handleCheckbox', e.target.checked );
       this.setState({
         useCode: e.target.checked
       });
@@ -61431,16 +61450,11 @@ function (_Component) {
     value: function validate() {
       var isValid = this.validHref();
 
-      if (isValid && this.state.useCode) {
-        isValid = this.validCode();
+      if (this.state.useCode) {
+        isValid = isValid && this.validCode();
       }
 
       return isValid;
-    }
-  }, {
-    key: "getShortLinkExample",
-    value: function getShortLinkExample($code) {
-      return !!$code && $code.length ? window.location.protocol + "//" + window.location.host + "/i/" + $code : "";
     }
   }, {
     key: "render",
@@ -61455,7 +61469,7 @@ function (_Component) {
       }, "URL Shortener"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "card-body"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("p", null, "This tool will help you turn a long and complicated link into a short one."), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("form", {
-        onSubmit: this.submitHandler
+        onSubmit: this.handleSubmit
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
@@ -61491,13 +61505,13 @@ function (_Component) {
         value: this.state.code
       }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("small", {
         className: "text-muted"
-      }, this.getShortLinkExample(this.state.code))) : null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      }, getShortLinkExample(this.state.code))) : null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
         type: "submit",
         className: "btn btn-primary",
         disabled: !this.validate()
-      }, !this.state.isLoading ? 'Shorten' : 'Loading...', " "))), errorList.length ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Utils__WEBPACK_IMPORTED_MODULE_2__["RenderErrors"], {
+      }, !this.state.isLoading ? 'Create' : 'Loading...', " "))), errorList.length ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Utils__WEBPACK_IMPORTED_MODULE_2__["RenderErrors"], {
         errors: errorList
       }) : null));
     }
@@ -61560,8 +61574,6 @@ function (_Component) {
   _createClass(List, [{
     key: "onDeleteHandler",
     value: function onDeleteHandler(e, id) {
-      e.preventDefault();
-
       if (this.props.onDelete) {
         this.props.onDelete(id);
       }
@@ -61594,7 +61606,7 @@ function (_Component) {
           className: "font-italic"
         }, url.href), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
           className: "text-muted small"
-        }, url.id, ": ", url.created_at)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+        }, "id:", url.id, " | ", url.created_at)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
           type: "button",
           className: "close",
           onClick: function onClick(e) {
@@ -61718,7 +61730,7 @@ function (_Component) {
         axios__WEBPACK_IMPORTED_MODULE_2___default.a.delete('/urls/' + id + "/").then(function (res) {
           _this3.getUrls();
         }).catch(function (error) {
-          console.log('delete error', error);
+          console.log('onDeleteHandler error', error);
         });
       }
     }

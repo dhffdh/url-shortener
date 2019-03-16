@@ -9,7 +9,7 @@ use App\Url;
 class StatsController extends Controller
 {
     public function redirect(Request $request, $shortCode){
-        $item = Url::getOneByCode($shortCode);
+        $item = Url::getByCode($shortCode);
         if($item){
             return redirect($item->href);
         }

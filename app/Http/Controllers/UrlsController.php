@@ -17,24 +17,24 @@ class UrlsController extends Controller
 
     public function all()
     {
-        return Url::getAll();
+        return Url::getAllByUser();
     }
 
     public function show(Request $request, $urlId)
     {
-        $item = Url::getOne($urlId);
+        $item = Url::getOneByUser($urlId);
         return $item;
     }
 
     public function store(StoreUrlPost $request)
     {
-        $item = Url::createOne($request['href']);
-        return response()->json($item, 201);
+        $item = Url::createOneByUser($request);
+        return $item;
     }
 
     public function update(Request $request, $urlId)
     {
-        $item = Url::getOne($urlId);
+        $item = Url::getOneByUser($urlId);
         $item->update($request->all());
 
         return response()->json($item, 200);
@@ -48,7 +48,7 @@ class UrlsController extends Controller
      */
     public function delete(Request $request, $urlId)
     {
-        return Url::deleteOne($urlId);
+        return Url::deleteOneByUser($urlId);
     }
 
 }
