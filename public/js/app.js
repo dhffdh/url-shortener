@@ -61307,6 +61307,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _Utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Utils */ "./resources/js/components/Utils.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -61328,6 +61329,7 @@ function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || func
 
 
 
+
 var Form =
 /*#__PURE__*/
 function (_Component) {
@@ -61341,7 +61343,10 @@ function (_Component) {
     _this = _possibleConstructorReturn(this, _getPrototypeOf(Form).call(this));
     _this.state = {
       href: "",
-      errorList: []
+      code: "",
+      errorList: [],
+      isLoading: false,
+      useCode: false
     };
     _this.submitHandler = _this.submitHandler.bind(_assertThisInitialized(_this));
     _this.validate = _this.validate.bind(_assertThisInitialized(_this));
@@ -61355,13 +61360,16 @@ function (_Component) {
 
       e.preventDefault(); //console.log('submitHandler', this.state );
 
+      this.setState({
+        errorList: [],
+        isLoading: true
+      });
       axios__WEBPACK_IMPORTED_MODULE_1___default.a.post('/urls', {
         href: this.state.href
       }).then(function (res) {
         //console.log('submitHandler res:',res.data);
         _this2.setState({
-          href: "",
-          errorList: []
+          href: ""
         });
 
         if (_this2.props.onSuccesAdd) {
@@ -61369,42 +61377,77 @@ function (_Component) {
         }
       }).catch(function (error) {
         //console.log('ERROR', errors );
+        if (!!error.response.data.errors && error.response.data.errors.length) {
+          _this2.setState({
+            errorList: Object.values(error.response.data.errors)
+          });
+        }
+
+        if (!!error.response.data.message) {
+          _this2.setState({
+            errorList: [error.response.data.message]
+          });
+        }
+      }).finally(function () {
         _this2.setState({
-          errorList: Object.values(error.response.data.errors)
+          isLoading: false
         });
       });
     }
   }, {
-    key: "handleInput",
-    value: function handleInput(e) {
+    key: "handleHrefInput",
+    value: function handleHrefInput(e) {
       this.setState({
         href: e.target.value
       });
     }
   }, {
-    key: "renderErrors",
-    value: function renderErrors() {
-      var errorList = this.state.errorList;
-      return errorList.length > 0 ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "alert alert-danger",
-        role: "alert"
-      }, errorList.map(function (mes, index) {
-        return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-          key: index
-        }, mes);
-      })) : null;
+    key: "handleCodeInput",
+    value: function handleCodeInput(e) {
+      this.setState({
+        code: e.target.value
+      });
+    }
+  }, {
+    key: "handleCheckbox",
+    value: function handleCheckbox(e) {
+      //console.log('handleCheckbox', e.target.checked );
+      this.setState({
+        useCode: e.target.checked
+      });
+    }
+  }, {
+    key: "validHref",
+    value: function validHref() {
+      return this.state.href.length > 0;
+    }
+  }, {
+    key: "validCode",
+    value: function validCode() {
+      return this.state.code.length >= 6;
     }
   }, {
     key: "validate",
     value: function validate() {
-      if (this.state.href.length > 0) return true;
-      return false;
+      var isValid = this.validHref();
+
+      if (isValid && this.state.useCode) {
+        isValid = this.validCode();
+      }
+
+      return isValid;
+    }
+  }, {
+    key: "getShortLinkExample",
+    value: function getShortLinkExample($code) {
+      return !!$code && $code.length ? window.location.protocol + "//" + window.location.host + "/i/" + $code : "";
     }
   }, {
     key: "render",
     value: function render() {
       var _this3 = this;
 
+      var errorList = this.state.errorList;
       return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "card"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
@@ -61420,16 +61463,43 @@ function (_Component) {
         className: "form-control",
         placeholder: "Enter long URL-link here",
         onChange: function onChange(e) {
-          return _this3.handleInput(e);
+          return _this3.handleHrefInput(e);
         },
         value: this.state.href
       })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "form-group form-check"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+        type: "checkbox",
+        className: "form-check-input",
+        id: "check1",
+        onChange: function onChange(e) {
+          return _this3.handleCheckbox(e);
+        }
+      }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", {
+        className: "form-check-label",
+        htmlFor: "check1"
+      }, "Create your self code")), this.state.useCode ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "form-group"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+        type: "text",
+        className: "form-control" + (!this.validCode() ? " is-invalid" : ""),
+        placeholder: "Enter short-link code (min 6 symbols)",
+        minLength: "6",
+        onChange: function onChange(e) {
+          return _this3.handleCodeInput(e);
+        },
+        value: this.state.code
+      }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("small", {
+        className: "text-muted"
+      }, this.getShortLinkExample(this.state.code))) : null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
         type: "submit",
         className: "btn btn-primary",
         disabled: !this.validate()
-      }, "Shorten"))), this.renderErrors()));
+      }, !this.state.isLoading ? 'Shorten' : 'Loading...', " "))), errorList.length ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Utils__WEBPACK_IMPORTED_MODULE_2__["RenderErrors"], {
+        errors: errorList
+      }) : null));
     }
   }]);
 
@@ -61490,7 +61560,7 @@ function (_Component) {
   _createClass(List, [{
     key: "onDeleteHandler",
     value: function onDeleteHandler(e, id) {
-      e.preventDefault(); //console.log('onDeleteHandler',id);
+      e.preventDefault();
 
       if (this.props.onDelete) {
         this.props.onDelete(id);
@@ -61617,11 +61687,11 @@ function (_Component) {
       var _this2 = this;
 
       axios__WEBPACK_IMPORTED_MODULE_2___default.a.get('/urls').then(function (res) {
-        //console.log('/urls',res.data);
         _this2.setState({
           urls: res.data
         });
-      }).catch(function (error) {//console.log('ERROR', error)
+      }).catch(function (error) {
+        console.log('getUrls error:', error);
       });
     }
     /**
@@ -61677,6 +61747,43 @@ function (_Component) {
 if (document.getElementById('main')) {
   react_dom__WEBPACK_IMPORTED_MODULE_1___default.a.render(react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(Main, null), document.getElementById('main'));
 }
+
+/***/ }),
+
+/***/ "./resources/js/components/Utils.js":
+/*!******************************************!*\
+  !*** ./resources/js/components/Utils.js ***!
+  \******************************************/
+/*! exports provided: RenderErrors */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RenderErrors", function() { return RenderErrors; });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+
+/**
+ *
+ * @param props
+ * @returns {*}
+ * @constructor
+ */
+
+function RenderErrors(props) {
+  var errors = props.errors;
+  if (!errors.length) return null;
+  return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: "alert alert-danger",
+    role: "alert"
+  }, errors.map(function (mes, index) {
+    return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      key: index
+    }, mes);
+  }));
+}
+
+
 
 /***/ }),
 

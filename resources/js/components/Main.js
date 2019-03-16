@@ -26,13 +26,12 @@ export default class Main extends Component {
 
         axios.get('/urls')
             .then(res => {
-                //console.log('/urls',res.data);
                 this.setState({
                     urls: res.data
                 });
             })
             .catch(error => {
-                //console.log('ERROR', error)
+                console.log('getUrls error:', error)
             })
     }
 
@@ -51,7 +50,6 @@ export default class Main extends Component {
      * @param id
      */
     onDeleteHandler(id){
-
         if(confirm('Are you sure you want to delete this item?')){
             axios.delete('/urls/'+id+"/")
                 .then(res => {
@@ -61,7 +59,6 @@ export default class Main extends Component {
                     console.log('delete error', error)
                 })
         }
-
     }
 
     render() {

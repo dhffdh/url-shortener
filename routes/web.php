@@ -19,8 +19,7 @@ Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
 
-Route::get('/r/{code}', 'RedirectController@redirect');
-
+Route::get('/i/{code}', 'StatsController@redirect');
 
 Route::prefix('/urls')->group(function (){
     Route::get('/', 'UrlsController@all');

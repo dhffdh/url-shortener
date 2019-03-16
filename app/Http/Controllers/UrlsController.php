@@ -15,29 +15,17 @@ class UrlsController extends Controller
         $this->middleware('auth');
     }
 
-
     public function all()
     {
         return Url::getAll();
     }
 
-    /**
-     *
-     *
-     * @param Request $request
-     * @param $urlId
-     * @return mixed
-     */
     public function show(Request $request, $urlId)
     {
         $item = Url::getOne($urlId);
         return $item;
     }
 
-    /**
-     * @param StoreUrlPost $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function store(StoreUrlPost $request)
     {
         $item = Url::createOne($request['href']);
@@ -62,15 +50,5 @@ class UrlsController extends Controller
     {
         return Url::deleteOne($urlId);
     }
-
-
-
-    public function redirect(Request $request, $shortCode){
-        $item = Url::getByCode($shortCode);
-
-
-        return $item;
-    }
-
 
 }

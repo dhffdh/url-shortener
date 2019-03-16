@@ -48,14 +48,18 @@
                 font-size: 84px;
             }
 
-            .links > a {
+            .links a,
+            .links-2 a {
                 color: #636b6f;
                 padding: 0 25px;
-                font-size: 18px;
+                font-size: 14px;
                 font-weight: 600;
                 letter-spacing: .1rem;
                 text-decoration: none;
                 text-transform: uppercase;
+            }
+            .links-2 a {
+                font-size: 18px;
             }
 
             .m-b-md {
@@ -84,8 +88,8 @@
                     URL Shortener
                 </div>
 
-                <div class="links">
-                    <a href="{{ url('/home') }}">Go</a>
+                <div class="links-2 ">
+                    <a href="{{ url('/home') }}">Home</a>
                 </div>
             </div>
         </div>

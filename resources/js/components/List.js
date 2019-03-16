@@ -10,8 +10,6 @@ export default class List extends Component {
 
     onDeleteHandler(e,id){
         e.preventDefault();
-        //console.log('onDeleteHandler',id);
-
         if(this.props.onDelete){
             this.props.onDelete(id);
         }
@@ -31,7 +29,6 @@ export default class List extends Component {
                                     <div>
                                         <div className="font-weight-bolder"><a href={ url.short_href } target="_blank" >{ url.short_href }</a></div>
                                         <div className="font-italic">{ url.href }</div>
-                                        {/*<div>Short code: { url.code }</div>*/}
                                         <div className="text-muted small">{ url.id }: { url.created_at }</div>
                                     </div>
                                     <div>
