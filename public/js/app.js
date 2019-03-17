@@ -61609,8 +61609,8 @@ function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || func
 
 var Info =
 /*#__PURE__*/
-function (_Component) {
-  _inherits(Info, _Component);
+function (_PureComponent) {
+  _inherits(Info, _PureComponent);
 
   function Info() {
     _classCallCheck(this, Info);
@@ -61641,12 +61641,12 @@ function (_Component) {
   }]);
 
   return Info;
-}(react__WEBPACK_IMPORTED_MODULE_0__["Component"]);
+}(react__WEBPACK_IMPORTED_MODULE_0__["PureComponent"]);
 
 var Item =
 /*#__PURE__*/
-function (_Component2) {
-  _inherits(Item, _Component2);
+function (_Component) {
+  _inherits(Item, _Component);
 
   function Item(props) {
     var _this;
@@ -61790,8 +61790,8 @@ function (_Component2) {
 
 var List =
 /*#__PURE__*/
-function (_Component3) {
-  _inherits(List, _Component3);
+function (_Component2) {
+  _inherits(List, _Component2);
 
   function List(props) {
     var _this5;

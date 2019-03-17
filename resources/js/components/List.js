@@ -1,8 +1,8 @@
-import React, { Component } from 'react';
+import React, { Component, PureComponent } from 'react';
 import axios from "axios/index";
 
 
-class Info extends Component {
+class Info extends PureComponent {
     render() {
         const { stats } = this.props;
         return (
