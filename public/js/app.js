@@ -61360,12 +61360,27 @@ function (_Component) {
     _this.state = {
       href: "",
       code: "",
+      timeout: "",
       errorList: [],
       isLoading: false,
       useCode: false
     };
+    _this.radios = [{
+      title: 'infinite',
+      value: ""
+    }, {
+      title: '1 day',
+      value: "day"
+    }, {
+      title: '1 week',
+      value: "week"
+    }, {
+      title: '1 month',
+      value: "month"
+    }];
     _this.handleSubmit = _this.handleSubmit.bind(_assertThisInitialized(_this));
-    _this.validate = _this.validate.bind(_assertThisInitialized(_this));
+    _this.validateForm = _this.validateForm.bind(_assertThisInitialized(_this));
+    _this.handleRadioChange = _this.handleRadioChange.bind(_assertThisInitialized(_this));
     return _this;
   }
 
@@ -61380,7 +61395,8 @@ function (_Component) {
         isLoading: true
       });
       var params = {
-        href: this.state.href
+        href: this.state.href,
+        timeout: this.state.timeout
       };
       if (this.state.useCode) params = _objectSpread({}, params, {
         code: this.state.code
@@ -61388,7 +61404,8 @@ function (_Component) {
       axios__WEBPACK_IMPORTED_MODULE_1___default.a.post('/urls', params).then(function (res) {
         _this2.setState({
           href: "",
-          code: ""
+          code: "",
+          timeout: ""
         });
 
         if (_this2.props.onSuccesAdd) {
@@ -61446,8 +61463,8 @@ function (_Component) {
       return this.state.code.length >= 6;
     }
   }, {
-    key: "validate",
-    value: function validate() {
+    key: "validateForm",
+    value: function validateForm() {
       var isValid = this.validHref();
 
       if (this.state.useCode) {
@@ -61457,18 +61474,25 @@ function (_Component) {
       return isValid;
     }
   }, {
+    key: "handleRadioChange",
+    value: function handleRadioChange(e) {
+      this.setState({
+        timeout: e.target.value
+      });
+    }
+  }, {
     key: "render",
     value: function render() {
       var _this3 = this;
 
-      var errorList = this.state.errorList;
-      return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "card"
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "card-header"
-      }, "URL Shortener"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "card-body"
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("p", null, "This tool will help you turn a long and complicated link into a short one."), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("form", {
+      var _this$state = this.state,
+          errorList = _this$state.errorList,
+          href = _this$state.href,
+          useCode = _this$state.useCode,
+          code = _this$state.code,
+          isLoading = _this$state.isLoading,
+          timeout = _this$state.timeout;
+      return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("form", {
         onSubmit: this.handleSubmit
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group"
@@ -61479,41 +61503,65 @@ function (_Component) {
         onChange: function onChange(e) {
           return _this3.handleHrefInput(e);
         },
-        value: this.state.href
+        value: href
       })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "form-group form-check"
+        className: "form-group "
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "form-check"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
         type: "checkbox",
         className: "form-check-input",
-        id: "check1",
+        id: "checkbox1",
         onChange: function onChange(e) {
           return _this3.handleCheckbox(e);
         }
       }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", {
-        className: "form-check-label",
-        htmlFor: "check1"
-      }, "Create your self code")), this.state.useCode ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: "form-group"
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+        className: "",
+        htmlFor: "checkbox1"
+      }, "Create self code")), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
         type: "text",
-        className: "form-control" + (!this.validCode() ? " is-invalid" : ""),
-        placeholder: "Enter short-link code (min 6 symbols)",
+        className: "form-control",
+        placeholder: "Enter short code (min 6 symbols)",
         minLength: "6",
         onChange: function onChange(e) {
           return _this3.handleCodeInput(e);
         },
-        value: this.state.code
+        value: code,
+        disabled: !useCode
       }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("small", {
         className: "text-muted"
-      }, getShortLinkExample(this.state.code))) : null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      }, getShortLinkExample(code))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "form-group"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", {
+        className: "form-check-label"
+      }, "Lifetime:"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, this.radios.map(function (radio, radioIndex) {
+        return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+          className: "form-check form-check-inline",
+          key: radioIndex
+        }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+          className: "form-check-input",
+          type: "radio",
+          name: "radio1",
+          id: "radio-" + radioIndex,
+          value: radio.value,
+          onChange: _this3.handleRadioChange,
+          checked: timeout === radio.value
+        }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", {
+          className: "form-check-label",
+          htmlFor: "radio-" + radioIndex
+        }, radio.title));
+      }))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: ""
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
         type: "submit",
-        className: "btn btn-primary",
-        disabled: !this.validate()
-      }, !this.state.isLoading ? 'Create' : 'Loading...', " "))), errorList.length ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Utils__WEBPACK_IMPORTED_MODULE_2__["RenderErrors"], {
+        className: "btn btn-success",
+        disabled: !this.validateForm()
+      }, !isLoading ? 'Create URL' : 'Loading...', " "))), errorList.length ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "mt-3"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Utils__WEBPACK_IMPORTED_MODULE_2__["RenderErrors"], {
+        className: "",
         errors: errorList
-      }) : null));
+      })) : null);
     }
   }]);
 
@@ -61536,6 +61584,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return List; });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var axios_index__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! axios/index */ "./node_modules/axios/index.js");
+/* harmony import */ var axios_index__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(axios_index__WEBPACK_IMPORTED_MODULE_1__);
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -61546,9 +61596,9 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
 
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
 
@@ -61556,32 +61606,214 @@ function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || func
 
 
 
-var List =
+
+var Info =
 /*#__PURE__*/
 function (_Component) {
-  _inherits(List, _Component);
+  _inherits(Info, _Component);
+
+  function Info() {
+    _classCallCheck(this, Info);
+
+    return _possibleConstructorReturn(this, _getPrototypeOf(Info).apply(this, arguments));
+  }
+
+  _createClass(Info, [{
+    key: "render",
+    value: function render() {
+      var stats = this.props.stats;
+      return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "fz-12"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, "Count of clicks: ", react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("b", null, stats.counter)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, "Unique users for last 14 days: ", react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("b", null, stats.lastusers)), stats.clicks.length ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "table-responsive  mt-2"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("table", {
+        className: "table table-sm"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tbody", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", {
+        scope: "col"
+      }, "Date"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("th", {
+        scope: "col"
+      }, "User IP")), stats.clicks.map(function (item, index) {
+        return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("tr", {
+          key: index
+        }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, item.created_at), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("td", null, item.user_ip));
+      })))) : null);
+    }
+  }]);
+
+  return Info;
+}(react__WEBPACK_IMPORTED_MODULE_0__["Component"]);
+
+var Item =
+/*#__PURE__*/
+function (_Component2) {
+  _inherits(Item, _Component2);
+
+  function Item(props) {
+    var _this;
+
+    _classCallCheck(this, Item);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(Item).call(this));
+    _this.state = {
+      stats: false,
+      showStats: false
+    };
+    _this.onDeleteHandler = _this.onDeleteHandler.bind(_assertThisInitialized(_this));
+    _this.handleShowStatsClick = _this.handleShowStatsClick.bind(_assertThisInitialized(_this));
+    _this.closePopup = _this.closePopup.bind(_assertThisInitialized(_this));
+    return _this;
+  }
+
+  _createClass(Item, [{
+    key: "onDeleteHandler",
+    value: function onDeleteHandler(e, id) {
+      var _this2 = this;
+
+      if (confirm('Are you sure you want to delete this item?')) {
+        axios_index__WEBPACK_IMPORTED_MODULE_1___default.a.delete('/urls/' + id).then(function (res) {
+          if (_this2.props.onDelete) {
+            _this2.props.onDelete();
+          }
+        }).catch(function (error) {
+          console.log('onDeleteHandler error', error);
+        });
+      }
+    }
+  }, {
+    key: "handleShowStatsClick",
+    value: function handleShowStatsClick(e, id) {
+      var _this3 = this;
+
+      e.preventDefault();
+
+      if (!this.state.stats) {
+        axios_index__WEBPACK_IMPORTED_MODULE_1___default.a.get('/urls/stat/' + id).then(function (res) {
+          _this3.setState({
+            stats: res.data
+          }, function () {
+            _this3.togglePopup();
+          });
+        }).catch(function (error) {
+          console.log('handleShowStatsClick error', error);
+        });
+      } else {
+        this.togglePopup();
+      }
+    }
+  }, {
+    key: "togglePopup",
+    value: function togglePopup() {
+      var newShowStats = !this.state.showStats;
+
+      if (newShowStats) {
+        window.dispatchEvent(new Event('close-popups'));
+      }
+
+      this.setState({
+        showStats: newShowStats
+      });
+    }
+  }, {
+    key: "closePopup",
+    value: function closePopup() {
+      this.setState({
+        showStats: false
+      });
+    }
+  }, {
+    key: "componentDidMount",
+    value: function componentDidMount() {
+      window.addEventListener("close-popups", this.closePopup);
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      var _this4 = this;
+
+      var url = this.props.url;
+      var _this$state = this.state,
+          showStats = _this$state.showStats,
+          stats = _this$state.stats;
+      return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "position-relative"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "d-flex justify-content-between position-relative"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "pr-3 overflow-hidden"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "font-weight-bolder"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", {
+        href: url.short_href,
+        target: "_blank"
+      }, url.short_href)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "font-italic"
+      }, url.href), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "text-muted small"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", null, "id:", url.id), " | ", react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", null, url.date), " | ", react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", {
+        className: "d-inline-block",
+        href: "#",
+        onClick: function onClick(e) {
+          return _this4.handleShowStatsClick(e, url.id);
+        }
+      }, !showStats ? 'Show stats' : 'Hide'), " ")), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "d-flex flex-column"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "clearfix"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+        type: "button",
+        className: "close",
+        onClick: function onClick(e) {
+          _this4.onDeleteHandler(e, url.id);
+        },
+        title: "Delete"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+        "aria-hidden": "true"
+      }, "\xD7"))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "mt-auto"
+      }))), showStats ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "b-stats-popup shadow bg-white p-2 border"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+        type: "button",
+        className: "close",
+        onClick: this.closePopup,
+        title: "Close"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+        className: "small"
+      }, "\xD7")), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(Info, {
+        stats: stats
+      })) : null);
+    }
+  }]);
+
+  return Item;
+}(react__WEBPACK_IMPORTED_MODULE_0__["Component"]);
+
+var List =
+/*#__PURE__*/
+function (_Component3) {
+  _inherits(List, _Component3);
 
   function List(props) {
-    var _this;
+    var _this5;
 
     _classCallCheck(this, List);
 
-    _this = _possibleConstructorReturn(this, _getPrototypeOf(List).call(this));
-    _this.onDeleteHandler = _this.onDeleteHandler.bind(_assertThisInitialized(_this));
-    return _this;
+    _this5 = _possibleConstructorReturn(this, _getPrototypeOf(List).call(this));
+    _this5.onDeleteHandler = _this5.onDeleteHandler.bind(_assertThisInitialized(_this5));
+    return _this5;
   }
 
   _createClass(List, [{
     key: "onDeleteHandler",
-    value: function onDeleteHandler(e, id) {
+    value: function onDeleteHandler(e) {
       if (this.props.onDelete) {
-        this.props.onDelete(id);
+        this.props.onDelete();
       }
     }
   }, {
     key: "render",
     value: function render() {
-      var _this2 = this;
+      var _this6 = this;
 
       var urls = this.props.urls;
       urls = urls.reverse();
@@ -61595,27 +61827,10 @@ function (_Component) {
         return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("li", {
           className: "list-group-item",
           key: index
-        }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-          className: "d-flex justify-content-between"
-        }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-          className: "font-weight-bolder"
-        }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", {
-          href: url.short_href,
-          target: "_blank"
-        }, url.short_href)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-          className: "font-italic"
-        }, url.href), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-          className: "text-muted small"
-        }, "id:", url.id, " | ", url.created_at)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
-          type: "button",
-          className: "close",
-          onClick: function onClick(e) {
-            _this2.onDeleteHandler(e, url.id);
-          },
-          title: "Delete"
-        }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
-          "aria-hidden": "true"
-        }, "\xD7")))));
+        }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(Item, {
+          url: url,
+          onDelete: _this6.onDeleteHandler
+        }));
       })));
     }
   }]);
@@ -61723,29 +61938,26 @@ function (_Component) {
 
   }, {
     key: "onDeleteHandler",
-    value: function onDeleteHandler(id) {
-      var _this3 = this;
-
-      if (confirm('Are you sure you want to delete this item?')) {
-        axios__WEBPACK_IMPORTED_MODULE_2___default.a.delete('/urls/' + id + "/").then(function (res) {
-          _this3.getUrls();
-        }).catch(function (error) {
-          console.log('onDeleteHandler error', error);
-        });
-      }
+    value: function onDeleteHandler() {
+      this.getUrls();
     }
   }, {
     key: "render",
     value: function render() {
-      var urls = this.state.urls;
       return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: ""
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Form__WEBPACK_IMPORTED_MODULE_4__["default"], {
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "card"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "card-header"
+      }, "URL Shortener"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        className: "card-body"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("p", null, "This tool will help you turn a long and complicated link into a short one."), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Form__WEBPACK_IMPORTED_MODULE_4__["default"], {
         onSuccesAdd: this.onSuccesAddHandler
-      })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      })))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "mt-4"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_List__WEBPACK_IMPORTED_MODULE_3__["default"], {
-        urls: urls,
+        urls: this.state.urls,
         onDelete: this.onDeleteHandler
       })));
     }

@@ -7,31 +7,32 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Exception;
+use \DateTime;
+use App\ShortCode;
 
+/**
+ * @property integer $id
+ * @property integer $user_id
+ *
+ * @property string $href
+ * @property string $code
+ *
+ * @property boolean $active
+ * @property string $timeout
+ *
+ * Class Url
+ * @package App
+ */
 class Url extends Model
 {
 
-    /**
-     * allowed characters for short code
-     *
-     * @var string
-     */
-    protected static $chars = "abcdefghijklmnopqrstuvwxyz|ABCDEFGHIJKLMNOPQRSTUVWXYZ|0123456789";
-
-    protected static $lengthCode = 6;
-
-
-    protected static $viewColumns = ['id','href', 'code', 'active', 'created_at'];
-
+    protected static $viewColumns = ['id','href', 'code', 'active', 'created_at', 'timeout'];
 
     protected $fillable = ['href', 'code', 'user_id', 'active', 'timeout'];
 
-    protected $casts = [
-        'created_at' => 'datetime:Y-m-d',
-    ];
+    protected $casts = [];
 
-    protected $appends = ['short_href'];
-
+    protected $appends = ['short_href','date'];
 
     /**
      * new computed attr: short_href
@@ -40,8 +41,20 @@ class Url extends Model
      */
     public function getShortHrefAttribute()
     {
-        return Config::get('app.url')."/i/".$this->code;
+        return $this->code ? Config::get('app.url')."/i/".$this->code : null;
     }
+
+    /**
+     * new computed attr: date
+     *
+     * @return null
+     */
+    public function getDateAttribute()
+    {
+        return $this->created_at ? $this->created_at->format('Y-m-d') : null;
+    }
+
+
 
     /**
      * Get all links by current User
@@ -56,6 +69,7 @@ class Url extends Model
         return $item;
     }
 
+
     /**
      * Get one link by current User
      *
@@ -68,6 +82,26 @@ class Url extends Model
             ->where('user_id', Auth::id())
             ->first(self::$viewColumns);
     }
+
+    /**
+     * Get one link and stats by current User
+     *
+     * @param $urlId
+     * @return mixed
+     * @throws Exception
+     */
+    public static function getStatsOneByUser($urlId){
+        $item = self::getOneByUser($urlId);
+        $info = [];
+        if($item){
+            $info['id'] = $item->id;
+            $info['counter'] = Stat::getCounter($urlId);
+            $info['clicks'] = Stat::getAll($urlId);
+            $info['lastusers'] = Stat::getCountOfLastUsers($urlId);
+        }
+        return $info;
+    }
+
 
     /**
      * @param $shortCode
@@ -91,17 +125,15 @@ class Url extends Model
             ->where('active', true)
             ->where('user_id', Auth::id())
             ->first();
-        //$item->active = false;
-        //$item->save();
         $item->delete();
         return $item;
     }
 
-
     /**
      * Adding link by current User
      *
-     * @param $request
+     * @param Request $request
+     * @return Url|mixed|null
      * @throws Exception
      */
     public static function createOneByUser(Request $request){
@@ -114,11 +146,39 @@ class Url extends Model
             throw new Exception("This link already exists");
         }
 
-        $code = self::createShortCode( self::$lengthCode );
+        $code = null;
         if(!empty($request['code'])){
-            $code = self::validateCode($request['code']);
-            if(!self::isUniqueShortCode($code))
-                throw new Exception("The code already exists");
+            $code = ShortCode::validateCode($request['code']);
+            if(!ShortCode::isUniqueShortCode($code))
+                throw new Exception("This short-code already exists");
+        }else{
+            $code = ShortCode::createShortCode();
+        }
+
+
+        $dateTimeout = null;
+        $timeout = ( !empty($request['timeout']) && in_array($request['timeout'],['day','week','month','year'])) ? $request['timeout'] : null;
+
+        if(!empty($timeout)){
+            $dateNow = new DateTime();
+            $interval = 'PT0S';
+            //P 7Y 5M 4D T 4H3M2S
+            switch ($timeout){
+                case "day":
+                    $interval = 'P1D';
+                    break;
+                case "week":
+                    $interval = 'P7D';
+                    break;
+                case "month":
+                    $interval = 'P1M';
+                    break;
+                case "year":
+                    $interval = 'P1Y';
+                    break;
+            }
+            //Add interval to nowtime
+            $dateTimeout = $dateNow->add(new \DateInterval($interval));
         }
 
         $item = new Url;
@@ -126,33 +186,10 @@ class Url extends Model
         $item->code = $code;
         $item->user_id = Auth::id();
         $item->active = true;
+        $item->timeout = $dateTimeout;
         $item->save();
-    }
 
-
-    /**
-     * Validate and clear request code from unavaleble chars
-     *
-     * @param $userCode
-     * @return string
-     * @throws Exception
-     */
-    protected static function validateCode($userCode){
-        $codeArray = str_split($userCode);
-        $avalebleChars = [];
-        foreach(explode('|', self::$chars) as $set){
-            $avalebleChars = array_merge($avalebleChars, str_split($set));
-        }
-        $resCode = "";
-        foreach ($codeArray as $char){
-            if(in_array($char,$avalebleChars))
-                $resCode .= $char;
-        }
-
-        if(strlen($resCode) < self::$lengthCode)
-            throw new Exception("The code must be at least 6 characters.");
-
-        return $resCode;
+        return $item;
     }
 
     /**
@@ -165,67 +202,6 @@ class Url extends Model
         return !self::where('href', $href)
             ->where('user_id', Auth::id())
             ->exists();
-    }
-
-
-    /*
-     * Create random shortCode
-     *
-     * if length = 4 exist 57^4 = 10.556.001 versions
-     * if length = 5 exist 57^5 = 601.692.057 versions
-     * if length = 6 exist 57^6 = 34.296.447.249 versions
-     * if length = 7 exist 57^7 = 1.954.897.493.193 versions
-     *
-     */
-    protected static function generateShortCode($length = 3){
-        $sets = explode('|', self::$chars);
-        $all = '';
-        $randString = '';
-        foreach($sets as $set){
-            $randString .= $set[array_rand(str_split($set))];
-            $all .= $set;
-        }
-        $all = str_split($all);
-        for($i = 0; $i < $length - count($sets); $i++){
-            $randString .= $all[array_rand($all)];
-        }
-        $randString = str_shuffle($randString);
-        return $randString;
-    }
-
-    /**
-     * Create !unique shortCode
-     *
-     * @param int $length
-     * @return string
-     * @throws Exception
-     */
-    protected static function createShortCode($length = 3){
-        $count = 0;
-        $time_start = microtime(true);
-        do {
-            $count++;
-            $code = self::generateShortCode($length);
-            $isExist = !self::isUniqueShortCode($code);
-            if($count > pow(10, $length-1)){
-                $time_end = microtime(true);
-                $time = $time_end - $time_start;
-                throw new Exception("generateShortCode error, count= $count, time= $time");
-                break;
-            }
-        } while ($isExist);
-        return $code;
-    }
-
-
-    /**
-     * Check uniqum shortCode
-     *
-     * @param $code
-     * @return mixed
-     */
-    protected static function isUniqueShortCode($code){
-        return !self::where('code', $code)->exists();
     }
 
 

@@ -14,12 +14,22 @@ export default class Form extends Component {
         this.state = {
             href: "",
             code: "",
+            timeout: "",
             errorList: [],
             isLoading: false,
             useCode: false,
         };
+
+        this.radios = [
+            {title: 'infinite',value: ""},
+            {title: '1 day',value: "day"},
+            {title: '1 week',value: "week"},
+            {title: '1 month',value: "month"}
+        ];
+
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.validate = this.validate.bind(this);
+        this.validateForm = this.validateForm.bind(this);
+        this.handleRadioChange = this.handleRadioChange.bind(this);
     }
 
     handleSubmit(e){
@@ -30,17 +40,20 @@ export default class Form extends Component {
             isLoading: true
         });
 
-        let params = { href: this.state.href };
+        let params = { href: this.state.href , timeout: this.state.timeout };
 
         if(this.state.useCode)
             params = { ...params , code: this.state.code };
+
+
 
         axios.post('/urls', params)
             .then(
                 res => {
                     this.setState({
                         href: "",
-                        code: ""
+                        code: "",
+                        timeout: "",
                     });
                     if(this.props.onSuccesAdd){
                         this.props.onSuccesAdd(res.data);
@@ -84,7 +97,6 @@ export default class Form extends Component {
         });
     }
 
-
     validHref(){
         return this.state.href.length > 0;
     }
@@ -93,7 +105,7 @@ export default class Form extends Component {
         return this.state.code.length >= 6;
     }
 
-    validate(){
+    validateForm(){
         let isValid = this.validHref();
         if(this.state.useCode){
             isValid = isValid && this.validCode()
@@ -101,60 +113,92 @@ export default class Form extends Component {
         return isValid;
     }
 
+    handleRadioChange(e){
+        this.setState({
+            timeout: e.target.value
+        });
+    }
+
     render() {
-        const { errorList } = this.state;
+        const { errorList , href , useCode , code, isLoading , timeout } = this.state;
+
+
 
         return (
-            <div className="card">
-                <div className="card-header">URL Shortener</div>
-                <div className="card-body">
-                    <p>This tool will help you turn a long and complicated link into a short one.</p>
-                    <form onSubmit={this.handleSubmit}>
-                        <div className="form-group">
-                            <input type="text"
-                                   className="form-control"
-                                   placeholder="Enter long URL-link here"
-                                   onChange={(e)=>this.handleHrefInput(e)}
-                                   value={this.state.href}
+            <div>
+                <form onSubmit={this.handleSubmit}>
+                    <div className="form-group">
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Enter long URL-link here"
+                            onChange={(e)=>this.handleHrefInput(e)}
+                            value={href}
+                        />
+                    </div>
+
+                    <div className="form-group ">
+                        <div className="form-check">
+                            <input
+                                type="checkbox"
+                                className="form-check-input"
+                                id="checkbox1"
+                                onChange={(e)=>this.handleCheckbox(e)}
                             />
+                            <label className="" htmlFor="checkbox1">Create self code</label>
                         </div>
+                        <input
+                            type="text"
+                            className={"form-control"}
+                            placeholder="Enter short code (min 6 symbols)"
+                            minLength="6"
+                            onChange={(e)=>this.handleCodeInput(e)}
+                            value={code}
+                            disabled={!useCode}
+                        />
+                        <small className="text-muted">{ getShortLinkExample(code) }</small>
+                    </div>
 
-                        <div className="form-group form-check">
-                            <input type="checkbox"
-                                   className="form-check-input"
-                                   id="check1"
-                                   onChange={(e)=>this.handleCheckbox(e)}
-                            />
-                            <label className="form-check-label"
-                                   htmlFor="check1">Create your self code</label>
+
+                    <div className="form-group">
+                        <label className="form-check-label">Lifetime:</label>
+                        <div>
+                            {
+                                this.radios.map((radio,radioIndex) => {
+                                    return (
+                                        <div className="form-check form-check-inline" key={radioIndex}>
+                                            <input
+                                                className="form-check-input"
+                                                type="radio"
+                                                name="radio1"
+                                                id={ "radio-"+radioIndex}
+                                                value={ radio.value }
+                                                onChange={this.handleRadioChange}
+                                                checked={timeout === radio.value}
+                                            />
+                                            <label className="form-check-label" htmlFor={ "radio-"+radioIndex }>{ radio.title }</label>
+                                        </div>
+                                    )
+                                })
+
+                            }
                         </div>
+                    </div>
 
-                        {
-                            this.state.useCode ? (
-                                <div className="form-group">
-                                    <input type="text"
-                                           className={"form-control"+(!this.validCode()?" is-invalid":"")}
-                                           placeholder="Enter short-link code (min 6 symbols)"
-                                           minLength="6"
-                                           onChange={(e)=>this.handleCodeInput(e)}
-                                           value={this.state.code}
-                                    />
-                                    <small className="text-muted">{ getShortLinkExample(this.state.code) }</small>
-                                </div>
-                            ) : null
-                        }
+                    <div className="">
+                        <button
+                            type="submit"
+                            className="btn btn-success"
+                            disabled={!this.validateForm()}
+                        >{ !isLoading ? 'Create URL' : 'Loading...' } </button>
+                    </div>
 
-                        <div className="form-group">
-                            <button type="submit" className="btn btn-primary" disabled={!this.validate()}>{ !this.state.isLoading ? 'Create' : 'Loading...' } </button>
-                        </div>
+                </form>
 
-                    </form>
+                {
+                    errorList.length ? <div className="mt-3"><RenderErrors className="" errors={errorList}/></div> : null
+                }
 
-                    {
-                        errorList.length ? <RenderErrors errors={errorList}/> : null
-                    }
-
-                </div>
             </div>
 
         )

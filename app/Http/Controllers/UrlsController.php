@@ -15,29 +15,45 @@ class UrlsController extends Controller
         $this->middleware('auth');
     }
 
+    /**
+     * @return mixed
+     */
     public function all()
     {
         return Url::getAllByUser();
     }
 
+    /**
+     * @param Request $request
+     * @param $urlId
+     * @return mixed
+     */
     public function show(Request $request, $urlId)
     {
-        $item = Url::getOneByUser($urlId);
-        return $item;
+        return Url::getOneByUser($urlId);
     }
 
-    public function store(StoreUrlPost $request)
+
+    /**
+     * @param Request $request
+     * @param $urlId
+     * @return mixed
+     * @throws \Exception
+     */
+    public function statistics(Request $request, $urlId)
     {
-        $item = Url::createOneByUser($request);
-        return $item;
+        return Url::getStatsOneByUser($urlId);
     }
 
-    public function update(Request $request, $urlId)
-    {
-        $item = Url::getOneByUser($urlId);
-        $item->update($request->all());
 
-        return response()->json($item, 200);
+    /**
+     * @param StoreUrlPost $request
+     * @return Url|mixed|null
+     * @throws \Exception
+     */
+    public function save(StoreUrlPost $request)
+    {
+        return Url::createOneByUser($request);
     }
 
 

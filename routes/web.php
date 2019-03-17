@@ -24,7 +24,7 @@ Route::get('/i/{code}', 'StatsController@redirect');
 Route::prefix('/urls')->group(function (){
     Route::get('/', 'UrlsController@all');
     Route::get('/{id}', 'UrlsController@show');
-    Route::post('/','UrlsController@store');
-    Route::put('/{id}','UrlsController@update');
+    Route::get('/stat/{id}', 'UrlsController@statistics');
+    Route::post('/','UrlsController@save');
     Route::delete('/{id}', 'UrlsController@delete');
 });

@@ -10660,3 +10660,16 @@ a.text-dark:focus {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
+.fz-12 {
+  font-size: 12px;
+}
+
+.b-stats-popup {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-radius: 2px;
+  z-index: 2;
+  margin-bottom: 1em;
+}
+

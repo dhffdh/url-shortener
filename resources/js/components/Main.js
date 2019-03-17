@@ -49,28 +49,24 @@ export default class Main extends Component {
      *
      * @param id
      */
-    onDeleteHandler(id){
-        if(confirm('Are you sure you want to delete this item?')){
-            axios.delete('/urls/'+id+"/")
-                .then(res => {
-                    this.getUrls();
-                })
-                .catch(error => {
-                    console.log('onDeleteHandler error', error)
-                })
-        }
+    onDeleteHandler(){
+        this.getUrls();
     }
 
     render() {
-        const {urls} = this.state;
-
         return (
             <div className="">
                 <div>
-                    <Form onSuccesAdd={this.onSuccesAddHandler}/>
+                    <div className="card">
+                        <div className="card-header">URL Shortener</div>
+                        <div className="card-body">
+                            <p>This tool will help you turn a long and complicated link into a short one.</p>
+                            <Form onSuccesAdd={this.onSuccesAddHandler}/>
+                        </div>
+                    </div>
                 </div>
                 <div className="mt-4">
-                    <List urls={urls} onDelete={this.onDeleteHandler}/>
+                    <List urls={this.state.urls} onDelete={this.onDeleteHandler}/>
                 </div>
             </div>
         );
